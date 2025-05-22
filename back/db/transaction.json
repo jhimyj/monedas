@@ -1,0 +1,30 @@
+[
+    {
+        "id": 1,
+        "currency_id_from": 1,
+        "currency_id_to": 3,
+        "amount_from": -50.0,
+        "amount_to": 55.0
+    },
+    {
+        "id": 2,
+        "currency_id_from": 1,
+        "currency_id_to": 4,
+        "amount_from": -20.0,
+        "amount_to": 21.5
+    },
+    {
+        "id": 3,
+        "currency_id_from": 2,
+        "currency_id_to": 3,
+        "amount_from": -100.0,
+        "amount_to": 105.0
+    },
+    {
+        "id": 4,
+        "currency_id_from": 2,
+        "currency_id_to": 4,
+        "amount_from": -10.0,
+        "amount_to": 10.7
+    }
+]
