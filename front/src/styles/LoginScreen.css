@@ -1,0 +1,62 @@
+/* Estilo moderno tipo app bancaria para LoginScreen */
+.card {
+  background: #f7fafd;
+  border-radius: 18px;
+  box-shadow: 0 4px 24px 0 rgba(0,0,0,0.08);
+  padding: 2.5em 2em 2em 2em;
+  max-width: 400px;
+  margin: 40px auto;
+  border: 1px solid #e3e8ee;
+}
+h2 {
+  color: #1a237e;
+  font-weight: 700;
+  margin-bottom: 1.5em;
+  letter-spacing: 1px;
+}
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2em;
+}
+input[type="email"],
+input[type="password"] {
+  padding: 0.9em 1em;
+  border-radius: 8px;
+  border: 1px solid #b0bec5;
+  font-size: 1.1em;
+  background: #fff;
+  transition: border 0.2s;
+}
+input:focus {
+  border: 1.5px solid #1976d2;
+  outline: none;
+}
+button[type="submit"] {
+  background: linear-gradient(90deg, #1976d2 60%, #64b5f6 100%);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.9em 0;
+  font-size: 1.1em;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 8px 0 rgba(25, 118, 210, 0.08);
+  transition: background 0.2s;
+}
+button[type="submit"]:hover {
+  background: linear-gradient(90deg, #1565c0 60%, #42a5f5 100%);
+}
+button[type="button"] {
+  background: none;
+  color: #1976d2;
+  border: none;
+  font-size: 1em;
+  margin-top: 0.5em;
+  cursor: pointer;
+  text-decoration: underline;
+  transition: color 0.2s;
+}
+button[type="button"]:hover {
+  color: #0d47a1;
+}

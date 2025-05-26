@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Body
 from dataclasses import dataclass
 from utility.db_connector import DbConnector
 
@@ -11,6 +11,19 @@ class User:
     password: str
 
 user_db = DbConnector(path="db/user.json", key_attribute="id")
+
+@router.post("/user/login/")
+def log_in_user(body: dict = Body(...)):
+    email = body.get("email")
+    password = body.get("password")
+    if not email or not password:
+        raise HTTPException(status_code=400, detail="Email and password are required")
+    user = user_db.get_one_by_attribute(attribute_name="email", attribute_value=email)
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    if user["password"] != password:
+        raise HTTPException(status_code=401, detail="Incorrect password")
+    return user
 
 # Gets user info by their ID
 @router.get("/user/{user_id}")
