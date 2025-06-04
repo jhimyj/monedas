@@ -8,3 +8,7 @@ class IExchangeAdapter(ABC):
     @abstractmethod
     def get_rate(self, from_currency: str, to_currency: str) -> float:
         pass
+
+    @abstractmethod
+    def get_name(self) -> str:
+        pass

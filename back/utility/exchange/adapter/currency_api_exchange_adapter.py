@@ -24,3 +24,6 @@ class CurrencyApiExchangeAdapter(IExchangeAdapter):
             return result
         except Exception as e:
             raise e
+
+    def get_name(self):
+        return "currency_api"

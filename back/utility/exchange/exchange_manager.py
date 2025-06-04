@@ -20,9 +20,17 @@ class ExchangeManager:
         cls._adapter = adapter
 
     @classmethod
+    def get_current_adapter_name(cls) -> str:
+        if cls._instance is None:
+            cls()
+        if cls._adapter is None:
+            return ""
+        return cls._adapter.get_name()
+
+    @classmethod
     def get_exchange_rate(cls, from_currency: str, to_currency: str) -> float:
         if cls._instance is None:
             cls()
         if cls._adapter is None:
             raise ValueError("ExchangeManager error: Adapter not set")
-        return cls._adapter.get_rate(from_currency, to_currency)
+        return cls._adapter.get_rate(from_currency=from_currency, to_currency=to_currency)
