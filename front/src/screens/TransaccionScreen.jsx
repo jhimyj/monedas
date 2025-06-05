@@ -177,7 +177,7 @@ function TransaccionScreen() {
           <input
             type="number"
             name="amount_from"
-            placeholder="Monto origen (negativo)"
+            placeholder="Monto origen (positivo)"
             value={form.amount_from}
             onChange={handleChange}
             required
