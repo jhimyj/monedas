@@ -1,8 +1,10 @@
 Para levantar el front y el back:
 
 ```
-docker-compose up -d
+docker compose up (--build) -d
 ```
+
+(Utilizar la opción `--build` cuando se necesite rebuildear los containers)
 
 El front se encuentra en:
 
