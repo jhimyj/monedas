@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getUserTransactions, createTransaction, getExchangeRate } from '../api';
+import { getUserTransactions, createTransaction, getUserCurrencies, getExchangeRate } from '../api';
 import { getUserFromStorage, removeUserFromStorage } from '../utils/StorageOps';
 import { useNavigate } from 'react-router-dom';
 
@@ -17,9 +17,10 @@ function TransaccionScreen() {
   const [loading, setLoading] = useState(false);
   const [showTransactions, setShowTransactions] = useState(false);
   const [showForm, setShowForm] = useState(false);
+  const [userCurrencies, setUserCurrencies] = useState([]);
   const [rate, setRate] = useState(null);
-  const [exchanger, setExchanger] = useState('currency_api'); // Cambiado a currency_api por defecto
-  const currencyTypes = ['USD', 'EUR', 'PEN'];
+  const [exchanger, setExchanger] = useState('currency_api');
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -29,6 +30,12 @@ function TransaccionScreen() {
       fetchTransactions(storedUser.id);
     }
   }, []);
+
+  useEffect(() => {
+    if (user && user.id) {
+      getUserCurrencies(user.id).then(setUserCurrencies);
+    }
+  }, [user]);
 
   const fetchTransactions = async (userId) => {
     setError('');
@@ -62,19 +69,14 @@ function TransaccionScreen() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  // Consulta el rate cuando cambian los IDs de moneda
+  // Cuando cambian los IDs, busca los tipos de moneda y consulta el rate
   useEffect(() => {
     const fetchRate = async () => {
-      if (
-        form.currency_id_from &&
-        form.currency_id_to &&
-        form.currency_id_from !== form.currency_id_to
-      ) {
-        // Asume que el ID corresponde al orden en currencyTypes
-        const fromType = currencyTypes[Number(form.currency_id_from) - 1];
-        const toType = currencyTypes[Number(form.currency_id_to) - 1];
+      const fromCurrency = userCurrencies.find(c => c.id === Number(form.currency_id_from));
+      const toCurrency = userCurrencies.find(c => c.id === Number(form.currency_id_to));
+      if (fromCurrency && toCurrency && fromCurrency.type !== toCurrency.type) {
         try {
-          const res = await getExchangeRate(exchanger, fromType, toType);
+          const res = await getExchangeRate(exchanger, fromCurrency.type, toCurrency.type);
           setRate(res.rate);
         } catch {
           setRate(null);
@@ -84,8 +86,7 @@ function TransaccionScreen() {
       }
     };
     fetchRate();
-    // eslint-disable-next-line
-  }, [form.currency_id_from, form.currency_id_to]);
+  }, [form.currency_id_from, form.currency_id_to, userCurrencies, exchanger]);
 
   // Calcula el monto destino automáticamente
   useEffect(() => {
@@ -183,7 +184,6 @@ function TransaccionScreen() {
             )}
             {rate && ` Rate: ${rate}`}
           </div>
-          {/* Selector para exchanger */}
           <div style={{ marginBottom: 8 }}>
             <label>Proveedor de tipo de cambio: </label>
             <select value={exchanger} onChange={e => setExchanger(e.target.value)}>
