@@ -24,12 +24,12 @@ def get_transaction_by_id(transaction_id: int):
 # Creates a transaction
 @router.post("/transaction/")
 def create_transaction(transaction: Transaction):
-    if transaction.amount_from >= 0:
-        raise HTTPException(status_code=400, detail="Invalid amount in transaction 'from'! Value must be negative")
-    if transaction.amount_to <= 0:
-        raise HTTPException(status_code=400, detail="Invalid amount in transaction 'to'! Value must be positive")
-
-    # lazy loading the currency db and methods
+    # Ambos montos deben ser positivos
+    if transaction.amount_from <= 0 or transaction.amount_to <= 0:
+        raise HTTPException(status_code=400, detail="Ambos montos deben ser positivos")
+    # Guardar amount_from como negativo en la transacción
+    transaction.amount_from = -abs(transaction.amount_from)
+    # lazy loading the currency db y métodos
     from routes.currency import currency_db, Currency, update_currency_by_id
     
     currency_from = currency_db.get_one_by_attribute(attribute_name="id", attribute_value=transaction.currency_id_from)
@@ -40,13 +40,15 @@ def create_transaction(transaction: Transaction):
     if currency_to is None:
         raise HTTPException(status_code=404, detail=f"Currency with ID {transaction.currency_id_to} not found")
 
-    # check if possible to reduce amount in currency from
-    if currency_from["amount"] + transaction.amount_from < 0:
+    # Validar fondos suficientes
+    if currency_from["amount"] < abs(transaction.amount_from):
         raise HTTPException(status_code=400, detail=f"Currency with ID {transaction.currency_id_from} doesn't have enough funds")
 
-    # create dataclasses with modified amounts
-    currency_dataclass_from = Currency(currency_from["user_id"], currency_from["amount"] + transaction.amount_from, currency_from["type"])
-    currency_dataclass_to = Currency(currency_to["user_id"], currency_to["amount"] + transaction.amount_to, currency_to["type"])
+    # Actualizar saldos correctamente
+    nuevo_saldo_from = currency_from["amount"] + transaction.amount_from  # amount_from es negativo
+    nuevo_saldo_to = currency_to["amount"] + transaction.amount_to
+    currency_dataclass_from = Currency(currency_from["user_id"], nuevo_saldo_from, currency_from["type"])
+    currency_dataclass_to = Currency(currency_to["user_id"], nuevo_saldo_to, currency_to["type"])
     
     result = transaction_db.insert_into_table(key_attribute="id", value=transaction)
     if not result:
