@@ -4,6 +4,7 @@
 - Alejandro Joel Ore Garcia (100%)
 - Jhimy Jhoel Delgado Bazan (100%)
 - Aldair Adrián Seminario Sánchez (100%)
+- Alair Jairo Catacora Tupa (100%)
 - Estefano Mauricio Zarate Manosalva (100%)
 
 ## Indicaciones
