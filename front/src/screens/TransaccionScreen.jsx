@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getUserTransactions, createTransaction, getUserCurrencies, getExchangeRate } from '../api';
+import { getUserTransactions, createTransaction, getUserCurrencies, getExchangeRate, getCurrencyById } from '../api';
 import { getUserFromStorage, removeUserFromStorage } from '../utils/StorageOps';
 import { useNavigate } from 'react-router-dom';
 
@@ -69,15 +69,19 @@ function TransaccionScreen() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  // Cuando cambian los IDs, busca los tipos de moneda y consulta el rate
+  // Cuando cambian los IDs, busca los tipos de moneda usando getCurrencyById y consulta el rate
   useEffect(() => {
     const fetchRate = async () => {
-      const fromCurrency = userCurrencies.find(c => c.id === Number(form.currency_id_from));
-      const toCurrency = userCurrencies.find(c => c.id === Number(form.currency_id_to));
-      if (fromCurrency && toCurrency && fromCurrency.type !== toCurrency.type) {
+      if (form.currency_id_from && form.currency_id_to && form.currency_id_from !== form.currency_id_to) {
         try {
-          const res = await getExchangeRate(exchanger, fromCurrency.type, toCurrency.type);
-          setRate(res.rate);
+          const fromCurrency = await getCurrencyById(form.currency_id_from);
+          const toCurrency = await getCurrencyById(form.currency_id_to);
+          if (fromCurrency && toCurrency && fromCurrency.type !== toCurrency.type) {
+            const res = await getExchangeRate(exchanger, fromCurrency.type, toCurrency.type);
+            setRate(res.rate);
+          } else {
+            setRate(null);
+          }
         } catch {
           setRate(null);
         }
@@ -86,12 +90,13 @@ function TransaccionScreen() {
       }
     };
     fetchRate();
-  }, [form.currency_id_from, form.currency_id_to, userCurrencies, exchanger]);
+  }, [form.currency_id_from, form.currency_id_to, exchanger]);
 
   // Calcula el monto destino automáticamente
   useEffect(() => {
     if (rate && form.amount_from) {
-      setForm(f => ({ ...f, amount_to: Math.abs(Number(f.amount_from)) * rate }));
+      const rounded = Math.round(Math.abs(Number(form.amount_from)) * rate * 100) / 100;
+      setForm(f => ({ ...f, amount_to: rounded }));
     } else {
       setForm(f => ({ ...f, amount_to: '' }));
     }
@@ -103,13 +108,15 @@ function TransaccionScreen() {
     setSuccess('');
     setLoading(true);
     try {
-      const amountTo = Math.abs(Number(form.amount_from)) * rate;
-      await createTransaction({
+      const amountTo = Math.round(Math.abs(Number(form.amount_from)) * rate * 100) / 100;
+      const payload = {
         currency_id_from: Number(form.currency_id_from),
         currency_id_to: Number(form.currency_id_to),
-        amount_from: Number(form.amount_from),
+        amount_from: Math.round(Number(form.amount_from) * 100) / 100,
         amount_to: amountTo
-      });
+      };
+      console.log('[DEBUG] Payload enviado a createTransaction:', payload);
+      await createTransaction(payload);
       setSuccess('Transacción creada correctamente.');
       setForm({ currency_id_from: '', currency_id_to: '', amount_from: '', amount_to: '' });
       handleFetch();

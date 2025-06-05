@@ -82,3 +82,12 @@ export const getExchangeRate = async (exchangerName, fromCurrency, toCurrency) =
   }
 };
 
+export const getCurrencyById = async (currencyId) => {
+  try {
+    const response = await axios.get(`${API_URL}/currency/${currencyId}`);
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.detail || 'Error al obtener moneda');
+  }
+};
+
