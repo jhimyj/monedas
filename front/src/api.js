@@ -72,3 +72,13 @@ export const updateCurrency = async (currencyId, currency) => {
   const response = await axios.put(`${API_URL}/currency/${currencyId}`, currency);
   return response.data;
 };
+
+export const getExchangeRate = async (exchangerName, fromCurrency, toCurrency) => {
+  try {
+    const response = await axios.get(`${API_URL}/exchange/${exchangerName}/${fromCurrency}/${toCurrency}`);
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.detail || 'Error al obtener tipo de cambio');
+  }
+};
+

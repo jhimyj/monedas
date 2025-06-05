@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getUserTransactions, createTransaction } from '../api';
+import { getUserTransactions, createTransaction, getExchangeRate } from '../api';
 import { getUserFromStorage, removeUserFromStorage } from '../utils/StorageOps';
 import { useNavigate } from 'react-router-dom';
 
@@ -17,6 +17,9 @@ function TransaccionScreen() {
   const [loading, setLoading] = useState(false);
   const [showTransactions, setShowTransactions] = useState(false);
   const [showForm, setShowForm] = useState(false);
+  const [rate, setRate] = useState(null);
+  const [exchanger, setExchanger] = useState('currency_api'); // Cambiado a currency_api por defecto
+  const currencyTypes = ['USD', 'EUR', 'PEN'];
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -59,17 +62,52 @@ function TransaccionScreen() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  // Consulta el rate cuando cambian los IDs de moneda
+  useEffect(() => {
+    const fetchRate = async () => {
+      if (
+        form.currency_id_from &&
+        form.currency_id_to &&
+        form.currency_id_from !== form.currency_id_to
+      ) {
+        // Asume que el ID corresponde al orden en currencyTypes
+        const fromType = currencyTypes[Number(form.currency_id_from) - 1];
+        const toType = currencyTypes[Number(form.currency_id_to) - 1];
+        try {
+          const res = await getExchangeRate(exchanger, fromType, toType);
+          setRate(res.rate);
+        } catch {
+          setRate(null);
+        }
+      } else {
+        setRate(null);
+      }
+    };
+    fetchRate();
+    // eslint-disable-next-line
+  }, [form.currency_id_from, form.currency_id_to]);
+
+  // Calcula el monto destino automáticamente
+  useEffect(() => {
+    if (rate && form.amount_from) {
+      setForm(f => ({ ...f, amount_to: Math.abs(Number(f.amount_from)) * rate }));
+    } else {
+      setForm(f => ({ ...f, amount_to: '' }));
+    }
+  }, [rate, form.amount_from]);
+
   const handleCreate = async e => {
     e.preventDefault();
     setError('');
     setSuccess('');
     setLoading(true);
     try {
+      const amountTo = Math.abs(Number(form.amount_from)) * rate;
       await createTransaction({
         currency_id_from: Number(form.currency_id_from),
         currency_id_to: Number(form.currency_id_to),
         amount_from: Number(form.amount_from),
-        amount_to: Number(form.amount_to)
+        amount_to: amountTo
       });
       setSuccess('Transacción creada correctamente.');
       setForm({ currency_id_from: '', currency_id_to: '', amount_from: '', amount_to: '' });
@@ -136,14 +174,23 @@ function TransaccionScreen() {
             onChange={handleChange}
             required
           />
-          <input
-            type="number"
-            name="amount_to"
-            placeholder="Monto destino (positivo)"
-            value={form.amount_to}
-            onChange={handleChange}
-            required
-          />
+          {/* El input de monto destino se elimina, solo se muestra el valor calculado */}
+          <div style={{ margin: '8px 0', color: '#1976d2' }}>
+            {rate && form.amount_from && form.currency_id_from && form.currency_id_to && (
+              <>
+                Monto destino: {Math.abs(Number(form.amount_from)) * rate}
+              </>
+            )}
+            {rate && ` Rate: ${rate}`}
+          </div>
+          {/* Selector para exchanger */}
+          <div style={{ marginBottom: 8 }}>
+            <label>Proveedor de tipo de cambio: </label>
+            <select value={exchanger} onChange={e => setExchanger(e.target.value)}>
+              <option value="currency_api">CurrencyAPI</option>
+              <option value="frankfurter">Frankfurter</option>
+            </select>
+          </div>
           <div style={{ marginTop: 8 }}>
             <button type="submit" disabled={loading}>
               {loading ? 'Cargando...' : 'Crear transacción'}
