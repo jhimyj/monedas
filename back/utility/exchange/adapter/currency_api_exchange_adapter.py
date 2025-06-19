@@ -6,7 +6,7 @@ class CurrencyApiExchangeAdapter(IExchangeAdapter):
     """
     Implementación de adaptador para el API de CurrencyAPI
     """
-
+    
     def __init__(self):
         self.api_key = EnvLoader.get("CURRENCY_API_API_KEY") # get api key
         self.fetch_url = f"https://api.currencyapi.com/v3/latest?apikey={self.api_key}"
