@@ -79,6 +79,8 @@ function TransaccionScreen() {
           if (fromCurrency && toCurrency && fromCurrency.type !== toCurrency.type) {
             const res = await getExchangeRate(exchanger, fromCurrency.type, toCurrency.type);
             setRate(res.rate);
+          } else if (fromCurrency && toCurrency && fromCurrency.type === toCurrency.type) {
+            setRate(1);
           } else {
             setRate(null);
           }
@@ -108,11 +110,12 @@ function TransaccionScreen() {
     setSuccess('');
     setLoading(true);
     try {
+      const amountFrom = Math.round(Number(form.amount_from) * 100) / 100;
       const amountTo = Math.round(Math.abs(Number(form.amount_from)) * rate * 100) / 100;
       const payload = {
         currency_id_from: Number(form.currency_id_from),
         currency_id_to: Number(form.currency_id_to),
-        amount_from: Math.round(Number(form.amount_from) * 100) / 100,
+        amount_from: amountFrom,
         amount_to: amountTo
       };
       console.log('[DEBUG] Payload enviado a createTransaction:', payload);
