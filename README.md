@@ -1,4 +1,4 @@
-# EC3 - Implementación monedas
+# EC4 - Unit Tests y Performance
 
 ## Integrantes
 - Alejandro Joel Ore Garcia (100%)
@@ -7,7 +7,23 @@
 - Alair Jairo Catacora Tupa (100%)
 - Estefano Mauricio Zarate Manosalva (100%)
 
-## Indicaciones
+## Indicaciones para EC4
+
+Dentro de la carpeta `back`, ejecutar:
+
+```
+pytest
+```
+
+Para ejecutar los tests, y:
+
+```
+pytest --cov=. --cov-report=term-missing
+```
+
+Para el CodeCoverage.
+
+## Indicaciones para EC3
 
 Para levantar el front y el back:
 
