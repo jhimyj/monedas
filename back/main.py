@@ -1,9 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routes.user import router as user_router
-from routes.currency import router as currency_router
-from routes.transaction import router as transaction_router
-from routes.exchange import router as exchange_router
+from utility.db_connector import DbConnector
+from routes.user import UserRouter
+from routes.currency import CurrencyRouter
+from routes.transaction import TransactionRouter
+from routes.exchange import ExchangeRouter
 
 app = FastAPI()
 
@@ -16,7 +17,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(user_router, prefix="", tags=["User"])
-app.include_router(currency_router, prefix="", tags=["Currency"])
-app.include_router(transaction_router, prefix="", tags=["Transaction"])
-app.include_router(exchange_router, prefix="", tags=["Exchange"])
+user_db = DbConnector(path="db/user.json", key_attribute="id")
+currency_db = DbConnector(path="db/currency.json", key_attribute="id")
+transaction_db = DbConnector(path="db/transaction.json", key_attribute="id")
+    
+user_rt = UserRouter(user_db=user_db)
+currency_rt = CurrencyRouter(user_db=user_db, currency_db=currency_db)
+transaction_rt = TransactionRouter(user_db=user_db, currency_db=currency_db, transaction_db=transaction_db, currency_router=currency_rt)
+exchange_rt = ExchangeRouter()
+
+app.include_router(user_rt.router, prefix="", tags=["User"])
+app.include_router(currency_rt.router, prefix="", tags=["Currency"])
+app.include_router(transaction_rt.router, prefix="", tags=["Transaction"])
+app.include_router(exchange_rt.router, prefix="", tags=["Exchange"])
