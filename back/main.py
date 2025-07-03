@@ -1,6 +1,8 @@
+import time
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from utility.db_connector import DbConnector
+from utility.env_loader import EnvLoader
 from routes.user import UserRouter
 from routes.currency import CurrencyRouter
 from routes.transaction import TransactionRouter
@@ -17,6 +19,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Modo mock para pruebas de carga
+USE_MOCK_API = EnvLoader.get("USE_MOCK_API").lower() == "true"
+print("USE_MOCK_API:", USE_MOCK_API)
+
 user_db = DbConnector(path="db/user.json", key_attribute="id")
 currency_db = DbConnector(path="db/currency.json", key_attribute="id")
 transaction_db = DbConnector(path="db/transaction.json", key_attribute="id")
@@ -30,3 +36,29 @@ app.include_router(user_rt.router, prefix="", tags=["User"])
 app.include_router(currency_rt.router, prefix="", tags=["Currency"])
 app.include_router(transaction_rt.router, prefix="", tags=["Transaction"])
 app.include_router(exchange_rt.router, prefix="", tags=["Exchange"])
+
+# Endpoints mock para pruebas de carga
+if USE_MOCK_API:
+    from fastapi import Request
+    from fastapi.responses import JSONResponse
+
+    @app.post("/deposit")
+    async def mock_deposit(request: Request):
+        time.sleep(0.5)
+        data = await request.json()
+        return JSONResponse({"status": "ok", "new_balance": data.get("amount", 0) + 100})
+
+    @app.post("/transfer")
+    async def mock_transfer(request: Request):
+        time.sleep(0.5)
+        data = await request.json()
+        return JSONResponse({
+            "status": "ok",
+            "from_balance": 1000 - data.get("amount", 0),
+            "to_balance": 500 + data.get("amount", 0)
+        })
+
+    @app.get("/mock/balance")
+    async def mock_balance():
+        # Devuelve un saldo simulado fijo
+        return {"balance": 1000 + 1000*100 - 1000*50}
